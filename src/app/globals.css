@@ -1,0 +1,45 @@
+@import "tailwindcss";
+@import "tw-animate-css";
+
+@custom-variant dark (&:is(.dark *));
+
+@theme inline {
+  --color-background: #FAF8F5;
+  --color-foreground: #1a1a1a;
+  --color-card: #ffffff;
+  --color-card-foreground: #1a1a1a;
+  --color-popover: #ffffff;
+  --color-popover-foreground: #1a1a1a;
+  --color-primary: #1B4332;
+  --color-primary-foreground: #FAF8F5;
+  --color-secondary: #f0ebe4;
+  --color-secondary-foreground: #1B4332;
+  --color-muted: #f0ebe4;
+  --color-muted-foreground: #6b6560;
+  --color-accent: #D4A574;
+  --color-accent-foreground: #1a1a1a;
+  --color-destructive: #dc2626;
+  --color-destructive-foreground: #FAF8F5;
+  --color-border: #e0d8cf;
+  --color-input: #e0d8cf;
+  --color-ring: #2D6A4F;
+  --color-sidebar-background: #1B4332;
+  --color-sidebar-foreground: #FAF8F5;
+  --color-sidebar-primary: #D4A574;
+  --color-sidebar-primary-foreground: #1a1a1a;
+  --color-sidebar-accent: #2D6A4F;
+  --color-sidebar-accent-foreground: #FAF8F5;
+  --color-sidebar-border: #2D6A4F;
+  --color-sidebar-ring: #D4A574;
+  --color-chart-1: #1B4332;
+  --color-chart-2: #2D6A4F;
+  --color-chart-3: #1B3A5C;
+  --color-chart-4: #D4A574;
+  --color-chart-5: #8B6F47;
+  --radius: 0.625rem;
+  --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
+}
+
+body {
+  font-family: var(--font-sans);
+}
