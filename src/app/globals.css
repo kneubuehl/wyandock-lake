@@ -80,3 +80,15 @@ body {
 /* Hide scrollbar utility */
 .no-scrollbar::-webkit-scrollbar { display: none; }
 .no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
+
+/* Mobile keyboard handling — prevent layout shift */
+@supports (height: 100dvh) {
+  html, body {
+    height: 100dvh;
+  }
+}
+
+/* Ensure inputs scroll into view when focused on mobile */
+input:focus, textarea:focus, select:focus {
+  scroll-margin-bottom: 16rem;
+}
