@@ -66,7 +66,7 @@ export default function ProceduresPage() {
               className="pl-10"
             />
           </div>
-          <div className="flex gap-2 overflow-x-auto pb-1">
+          <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
             {CATEGORIES.map(cat => (
               <Button
                 key={cat}

@@ -2,7 +2,7 @@
 
 import { useAuth } from '@/lib/auth-context'
 import { useRouter } from 'next/navigation'
-import { useEffect, useState, useMemo } from 'react'
+import { useEffect, useState, useMemo, useRef, useCallback } from 'react'
 import { AppShell } from '@/components/app-shell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
@@ -89,6 +89,21 @@ export default function CalendarPage() {
     toast.success('Reservation removed')
     fetchReservations()
   }
+
+  // Touch swipe for mobile month navigation
+  const touchStartX = useRef<number | null>(null)
+  const handleTouchStart = useCallback((e: React.TouchEvent) => {
+    touchStartX.current = e.touches[0].clientX
+  }, [])
+  const handleTouchEnd = useCallback((e: React.TouchEvent) => {
+    if (touchStartX.current === null) return
+    const diff = e.changedTouches[0].clientX - touchStartX.current
+    if (Math.abs(diff) > 50) {
+      if (diff < 0) setCurrentMonth(m => addMonths(m, 1))
+      else setCurrentMonth(m => subMonths(m, 1))
+    }
+    touchStartX.current = null
+  }, [])
 
   const monthStart = startOfMonth(currentMonth)
   const monthEnd = endOfMonth(currentMonth)
@@ -199,7 +214,7 @@ export default function CalendarPage() {
               ))}
             </div>
             {/* Calendar grid */}
-            <div className="grid grid-cols-7">
+            <div className="grid grid-cols-7" onTouchStart={handleTouchStart} onTouchEnd={handleTouchEnd}>
               {days.map(day => {
                 const parent = getParentForDate(day)
                 const dayReservations = getReservationsForDay(day)

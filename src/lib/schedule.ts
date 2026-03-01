@@ -1,4 +1,4 @@
-// Parent schedule logic for Up North
+// Parent schedule logic for Lake Wyandock
 // 2026 starts with Cheryl. Flips each year.
 // Bi-weekly Oct-Apr, weekly May-Sep.
 

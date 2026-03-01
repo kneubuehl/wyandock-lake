@@ -1,0 +1,7 @@
+-- Reference: Family member display names and emails
+-- Profiles are auto-created when users sign in via magic link
+-- Steve E. (admin): kneubuehl@live.com
+-- Cheryl (admin): cherylk50@msn.com
+-- Steve Sr. (admin): s.kneubuehl@aol.com
+-- Zach (member): zachkneubuehl@gmail.com
+-- Tyler (member): tylerk83@gmail.com

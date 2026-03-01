@@ -43,7 +43,7 @@ export default function LoginPage() {
         {/* Overlay with branding */}
         <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
         <div className="absolute bottom-6 left-6 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-10 text-white">
-          <h1 className="text-4xl md:text-5xl font-bold tracking-tight drop-shadow-lg">Up North</h1>
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight drop-shadow-lg font-script">Lake Wyandock</h1>
           <p className="text-sm md:text-base text-white/80 mt-1 drop-shadow uppercase tracking-widest">Wyandock Lake</p>
         </div>
       </div>
@@ -53,7 +53,7 @@ export default function LoginPage() {
         <div className="w-full max-w-sm space-y-6">
           <div className="text-center md:text-left">
             <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md mx-auto md:mx-0 mb-4">
-              <Image src="/lake-hero.jpg" alt="Up North" width={48} height={48} className="object-cover w-full h-full" />
+              <Image src="/lake-hero.jpg" alt="Lake Wyandock" width={48} height={48} className="object-cover w-full h-full" />
             </div>
             <h2 className="text-xl font-semibold text-[#1E3A5F]">Welcome back</h2>
             <p className="text-sm text-muted-foreground mt-1">Sign in to your lake house dashboard</p>

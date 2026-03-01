@@ -70,3 +70,13 @@ body {
   transform: translateY(-1px);
   box-shadow: 0 8px 24px rgba(15, 36, 64, 0.08);
 }
+
+/* Script font for Lake Wyandock branding */
+.font-script {
+  font-family: var(--font-script), 'Georgia', serif;
+  font-style: italic;
+}
+
+/* Hide scrollbar utility */
+.no-scrollbar::-webkit-scrollbar { display: none; }
+.no-scrollbar { -ms-overflow-style: none; scrollbar-width: none; }
