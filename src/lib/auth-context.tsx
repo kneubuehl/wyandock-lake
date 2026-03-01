@@ -28,6 +28,9 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   const [loading, setLoading] = useState(true)
 
   useEffect(() => {
+    // Set a maximum loading time of 1 second
+    const timeout = setTimeout(() => setLoading(false), 1000)
+
     supabase.auth.getSession().then(({ data: { session } }) => {
       setSession(session)
       setUser(session?.user ?? null)
@@ -35,6 +38,7 @@ export function AuthProvider({ children }: { children: ReactNode }) {
         fetchProfile(session.user.id)
       } else {
         setLoading(false)
+        clearTimeout(timeout)
       }
     })
 
@@ -49,7 +53,10 @@ export function AuthProvider({ children }: { children: ReactNode }) {
       }
     })
 
-    return () => subscription.unsubscribe()
+    return () => {
+      subscription.unsubscribe()
+      clearTimeout(timeout)
+    }
   }, [])
 
   async function fetchProfile(userId: string) {

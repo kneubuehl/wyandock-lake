@@ -14,7 +14,7 @@ import { format } from 'date-fns'
 import Link from 'next/link'
 import { Plus, Search, BookOpen } from 'lucide-react'
 
-const CATEGORIES = ['All', 'HVAC', 'Boat', 'Hot Tub', 'General', 'Opening', 'Closing']
+const DEFAULT_CATEGORIES = ['All', 'HVAC', 'Boat', 'Hot Tub', 'General', 'Opening', 'Closing']
 
 export default function ProceduresPage() {
   const { user, loading } = useAuth()
@@ -22,6 +22,7 @@ export default function ProceduresPage() {
   const [procedures, setProcedures] = useState<Procedure[]>([])
   const [search, setSearch] = useState('')
   const [category, setCategory] = useState('All')
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES)
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
@@ -32,7 +33,15 @@ export default function ProceduresPage() {
       .from('procedures')
       .select('*')
       .order('title')
-      .then(({ data }) => { if (data) setProcedures(data) })
+      .then(({ data }) => {
+        if (data) {
+          setProcedures(data)
+          // Build categories from existing data + defaults
+          const dbCats = [...new Set(data.map(p => p.category))]
+          const merged = [...new Set([...DEFAULT_CATEGORIES, ...dbCats])]
+          setCategories(merged)
+        }
+      })
   }, [])
 
   const filtered = procedures.filter(p => {
@@ -67,13 +76,13 @@ export default function ProceduresPage() {
             />
           </div>
           <div className="flex gap-2 overflow-x-auto pb-1 no-scrollbar">
-            {CATEGORIES.map(cat => (
+            {categories.map(cat => (
               <Button
                 key={cat}
                 variant={category === cat ? 'default' : 'outline'}
                 size="sm"
                 onClick={() => setCategory(cat)}
-                className={category === cat ? 'bg-[#1B4332]' : ''}
+                className={`shrink-0 ${category === cat ? 'bg-[#1E3A5F]' : ''}`}
               >
                 {cat}
               </Button>

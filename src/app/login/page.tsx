@@ -44,7 +44,7 @@ export default function LoginPage() {
         <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
         <div className="absolute bottom-6 left-6 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-10 text-white">
           <h1 className="text-4xl md:text-5xl font-bold tracking-tight drop-shadow-lg font-script">Lake Wyandock</h1>
-          <p className="text-sm md:text-base text-white/80 mt-1 drop-shadow uppercase tracking-widest">Wyandock Lake</p>
+          <p className="text-sm md:text-base text-white/80 mt-1 drop-shadow uppercase tracking-widest">Minocqua</p>
         </div>
       </div>
 

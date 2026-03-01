@@ -14,10 +14,11 @@ import { supabase } from '@/lib/supabase'
 import { Procedure } from '@/lib/types'
 import { toast } from 'sonner'
 import { format } from 'date-fns'
-import { ArrowLeft, Pencil, Trash2 } from 'lucide-react'
+import { ArrowLeft, Pencil, Trash2, Plus } from 'lucide-react'
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog'
 import Link from 'next/link'
 
-const CATEGORIES = ['HVAC', 'Boat', 'Hot Tub', 'General', 'Opening', 'Closing']
+const DEFAULT_CATEGORIES = ['HVAC', 'Boat', 'Hot Tub', 'General', 'Opening', 'Closing']
 
 export default function ProcedureDetailPage() {
   const { user, loading } = useAuth()
@@ -29,6 +30,9 @@ export default function ProcedureDetailPage() {
   const [content, setContent] = useState('')
   const [category, setCategory] = useState('')
   const [saving, setSaving] = useState(false)
+  const [categories, setCategories] = useState<string[]>(DEFAULT_CATEGORIES)
+  const [newCatOpen, setNewCatOpen] = useState(false)
+  const [newCatName, setNewCatName] = useState('')
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
@@ -48,7 +52,25 @@ export default function ProcedureDetailPage() {
           setCategory(data.category)
         }
       })
+    // Load existing categories
+    supabase.from('procedures').select('category').then(({ data }) => {
+      if (data) {
+        const dbCats = [...new Set(data.map(p => p.category))]
+        setCategories([...new Set([...DEFAULT_CATEGORIES, ...dbCats])])
+      }
+    })
   }, [params.id])
+
+  function addCategory() {
+    const name = newCatName.trim()
+    if (!name) return
+    if (!categories.includes(name)) {
+      setCategories(prev => [...prev, name])
+    }
+    setCategory(name)
+    setNewCatName('')
+    setNewCatOpen(false)
+  }
 
   async function save() {
     setSaving(true)
@@ -112,12 +134,26 @@ export default function ProcedureDetailPage() {
           <div className="space-y-4">
             <div>
               <Label>Category</Label>
-              <Select value={category} onValueChange={setCategory}>
-                <SelectTrigger className="mt-1"><SelectValue /></SelectTrigger>
-                <SelectContent>
-                  {CATEGORIES.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
-                </SelectContent>
-              </Select>
+              <div className="flex gap-2 mt-1">
+                <Select value={category} onValueChange={setCategory}>
+                  <SelectTrigger><SelectValue /></SelectTrigger>
+                  <SelectContent>
+                    {categories.map(c => <SelectItem key={c} value={c}>{c}</SelectItem>)}
+                  </SelectContent>
+                </Select>
+                <Button type="button" variant="outline" size="icon" onClick={() => setNewCatOpen(true)} title="Add new category">
+                  <Plus className="w-4 h-4" />
+                </Button>
+              </div>
+              <Dialog open={newCatOpen} onOpenChange={setNewCatOpen}>
+                <DialogContent>
+                  <DialogHeader><DialogTitle>New Category</DialogTitle></DialogHeader>
+                  <div className="space-y-3">
+                    <Input value={newCatName} onChange={e => setNewCatName(e.target.value)} placeholder="Category name" onKeyDown={e => e.key === 'Enter' && addCategory()} />
+                    <Button onClick={addCategory} className="w-full bg-[#1E3A5F] hover:bg-[#2D5F8A]">Add Category</Button>
+                  </div>
+                </DialogContent>
+              </Dialog>
             </div>
             <div>
               <Label>Content</Label>

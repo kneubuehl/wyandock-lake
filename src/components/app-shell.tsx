@@ -85,7 +85,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <Image src="/lake-hero.jpg" alt="Lake Wyandock" width={36} height={36} className="object-cover w-full h-full" />
           </div>
           <div>
-            <h1 className="text-lg font-semibold text-[#C8A97E] tracking-tight font-script">Lake Wyandock</h1>
+            <h1 className="text-lg font-semibold text-white tracking-tight font-script">Lake Wyandock</h1>
             <p className="text-[10px] text-blue-200/60 uppercase tracking-widest">Wyandock Lake</p>
           </div>
         </Link>
@@ -136,7 +136,7 @@ export function AppShell({ children }: { children: ReactNode }) {
             <div className="w-7 h-7 rounded-md overflow-hidden shadow-sm shrink-0">
               <Image src="/lake-hero.jpg" alt="Lake Wyandock" width={28} height={28} className="object-cover w-full h-full" />
             </div>
-            <h1 className="text-base font-semibold text-[#C8A97E] tracking-tight font-script">Lake Wyandock</h1>
+            <h1 className="text-base font-semibold text-white tracking-tight font-script">Lake Wyandock</h1>
           </Link>
           <div className="flex items-center gap-3">
             {/* Weather in mobile header */}
