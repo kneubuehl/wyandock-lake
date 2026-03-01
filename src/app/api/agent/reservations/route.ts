@@ -15,7 +15,7 @@ export async function GET(request: NextRequest) {
 
   const { data, error } = await supabaseAdmin
     .from('reservations')
-    .select('*, profiles(display_name)')
+    .select('*, profiles:user_id(display_name)')
     .gte('end_date', from)
     .lte('start_date', to)
     .order('start_date')
@@ -50,7 +50,7 @@ export async function POST(request: NextRequest) {
   const { data, error } = await supabaseAdmin
     .from('reservations')
     .insert({ user_id: profile.id, start_date, end_date, notes: notes || null })
-    .select('*, profiles(display_name)')
+    .select('*, profiles:user_id(display_name)')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })

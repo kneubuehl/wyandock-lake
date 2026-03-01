@@ -9,7 +9,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabaseAdmin
     .from('maintenance_tasks')
-    .select('*, profiles(display_name)')
+    .select('*, profiles:created_by(display_name)')
     .order('next_due_date', { ascending: true })
 
   if (status !== 'all') {

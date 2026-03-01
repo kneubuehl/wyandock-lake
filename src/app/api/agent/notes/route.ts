@@ -10,7 +10,7 @@ export async function GET(request: NextRequest) {
 
   let query = supabaseAdmin
     .from('handoff_notes')
-    .select('*, profiles(display_name)')
+    .select('*, profiles:author_id(display_name)')
     .order('created_at', { ascending: false })
 
   if (status !== 'all') {
@@ -56,7 +56,7 @@ export async function POST(request: NextRequest) {
   const { data, error } = await supabaseAdmin
     .from('handoff_notes')
     .insert({ content, author_id: authorId })
-    .select('*, profiles(display_name)')
+    .select('*, profiles:author_id(display_name)')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
