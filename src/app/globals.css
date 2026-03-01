@@ -44,7 +44,11 @@ body {
   font-family: var(--font-sans);
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
+  overflow-x: hidden;
 }
+
+/* Prevent long text from breaking layouts */
+.break-words { overflow-wrap: break-word; word-break: break-word; }
 
 /* Glass morphism cards */
 .glass-card {

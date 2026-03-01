@@ -100,24 +100,12 @@ export default function CodesPage() {
           {codes.map(code => (
             <Card key={code.id}>
               <CardContent className="py-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <div className="flex items-center gap-2">
-                      <Lock className="w-4 h-4 text-[#D4A574]" />
-                      <h3 className="font-medium">{code.label}</h3>
-                    </div>
-                    <div className="flex items-center gap-2 mt-2">
-                      <span className="font-mono text-lg font-bold tracking-wider">
-                        {showCodes[code.id] ? code.code : '••••'}
-                      </span>
-                      <Button variant="ghost" size="icon" className="h-7 w-7"
-                        onClick={() => setShowCodes(s => ({ ...s, [code.id]: !s[code.id] }))}>
-                        {showCodes[code.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
-                      </Button>
-                    </div>
-                    {code.notes && <p className="text-xs text-muted-foreground mt-1">{code.notes}</p>}
+                <div className="flex items-start justify-between gap-2">
+                  <div className="flex items-center gap-2 min-w-0">
+                    <Lock className="w-4 h-4 text-[#D4A574] shrink-0" />
+                    <h3 className="font-medium break-words">{code.label}</h3>
                   </div>
-                  <div className="flex gap-1">
+                  <div className="flex gap-1 shrink-0">
                     <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEdit(code)}>
                       <Pencil className="w-3 h-3" />
                     </Button>
@@ -126,6 +114,16 @@ export default function CodesPage() {
                     </Button>
                   </div>
                 </div>
+                <div className="flex items-center gap-2 mt-2">
+                  <span className="font-mono text-lg font-bold tracking-wider">
+                    {showCodes[code.id] ? code.code : '••••'}
+                  </span>
+                  <Button variant="ghost" size="icon" className="h-7 w-7"
+                    onClick={() => setShowCodes(s => ({ ...s, [code.id]: !s[code.id] }))}>
+                    {showCodes[code.id] ? <EyeOff className="w-3 h-3" /> : <Eye className="w-3 h-3" />}
+                  </Button>
+                </div>
+                {code.notes && <p className="text-xs text-muted-foreground mt-1 break-words">{code.notes}</p>}
               </CardContent>
             </Card>
           ))}

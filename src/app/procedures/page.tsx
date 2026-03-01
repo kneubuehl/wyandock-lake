@@ -102,14 +102,14 @@ export default function ProceduresPage() {
             <Link key={proc.id} href={`/procedures/${proc.id}`}>
               <Card className="hover:shadow-md transition-shadow cursor-pointer mb-3">
                 <CardContent className="py-4">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-medium text-[#1B4332]">{proc.title}</h3>
+                  <div className="flex items-start justify-between gap-2">
+                    <div className="min-w-0">
+                      <h3 className="font-medium text-[#1E3A5F] break-words">{proc.title}</h3>
                       <p className="text-xs text-muted-foreground mt-1">
                         Updated {format(new Date(proc.updated_at), 'MMM d, yyyy')}
                       </p>
                     </div>
-                    <Badge variant="secondary">{proc.category}</Badge>
+                    <Badge variant="secondary" className="shrink-0">{proc.category}</Badge>
                   </div>
                 </CardContent>
               </Card>

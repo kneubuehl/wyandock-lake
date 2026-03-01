@@ -133,23 +133,23 @@ export default function ContactsPage() {
           {filtered.map(contact => (
             <Card key={contact.id}>
               <CardContent className="py-4">
-                <div className="flex items-start justify-between">
-                  <div>
-                    <h3 className="font-medium">{contact.name}</h3>
-                    <a href={`tel:${contact.phone}`} className="text-sm text-[#2D6A4F] font-medium flex items-center gap-1 mt-1">
-                      <PhoneIcon className="w-3 h-3" /> {contact.phone}
-                    </a>
-                    <Badge variant="secondary" className="mt-2 text-xs">{contact.category}</Badge>
-                    {contact.notes && <p className="text-xs text-muted-foreground mt-1">{contact.notes}</p>}
+                <div>
+                  <div className="flex items-start justify-between gap-2">
+                    <h3 className="font-medium break-words min-w-0">{contact.name}</h3>
+                    <div className="flex gap-1 shrink-0">
+                      <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEdit(contact)}>
+                        <Pencil className="w-3 h-3" />
+                      </Button>
+                      <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteContact(contact.id)}>
+                        <Trash2 className="w-3 h-3" />
+                      </Button>
+                    </div>
                   </div>
-                  <div className="flex gap-1">
-                    <Button variant="ghost" size="icon" className="h-8 w-8" onClick={() => startEdit(contact)}>
-                      <Pencil className="w-3 h-3" />
-                    </Button>
-                    <Button variant="ghost" size="icon" className="h-8 w-8 text-destructive" onClick={() => deleteContact(contact.id)}>
-                      <Trash2 className="w-3 h-3" />
-                    </Button>
-                  </div>
+                  <a href={`tel:${contact.phone}`} className="text-sm text-[#2D6A4F] font-medium flex items-center gap-1 mt-1">
+                    <PhoneIcon className="w-3 h-3 shrink-0" /> {contact.phone}
+                  </a>
+                  <Badge variant="secondary" className="mt-2 text-xs">{contact.category}</Badge>
+                  {contact.notes && <p className="text-xs text-muted-foreground mt-1 break-words">{contact.notes}</p>}
                 </div>
               </CardContent>
             </Card>

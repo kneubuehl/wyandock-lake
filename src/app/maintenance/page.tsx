@@ -152,26 +152,22 @@ export default function MaintenancePage() {
             <div className="space-y-3">
               {pendingTasks.map(task => (
                 <div key={task.id} className="p-4 bg-muted/30 rounded-lg border">
-                  <div className="flex items-start justify-between">
-                    <div>
-                      <h3 className="font-medium">{task.title}</h3>
-                      {task.description && <p className="text-sm text-muted-foreground mt-1">{task.description}</p>}
-                      <div className="flex items-center gap-2 mt-2">
-                        <Badge variant="secondary">{task.recurrence}</Badge>
-                        {task.next_due_date && (
-                          <span className="text-xs text-muted-foreground">
-                            Due: {format(new Date(task.next_due_date), 'MMM d, yyyy')}
-                          </span>
-                        )}
-                        {task.status === 'overdue' && <Badge variant="destructive">Overdue</Badge>}
-                      </div>
-                    </div>
-                    <div className="flex gap-2">
-                      <Button variant="outline" size="sm" onClick={() => setCompleteTaskId(task.id)}>
-                        <CheckCircle2 className="w-3 h-3 mr-1" /> Done
-                      </Button>
-                      <Button variant="ghost" size="sm" onClick={() => deleteTask(task.id)} className="text-destructive">Delete</Button>
-                    </div>
+                  <h3 className="font-medium break-words">{task.title}</h3>
+                  {task.description && <p className="text-sm text-muted-foreground mt-1 break-words">{task.description}</p>}
+                  <div className="flex flex-wrap items-center gap-2 mt-2">
+                    <Badge variant="secondary">{task.recurrence}</Badge>
+                    {task.next_due_date && (
+                      <span className="text-xs text-muted-foreground">
+                        Due: {format(new Date(task.next_due_date), 'MMM d, yyyy')}
+                      </span>
+                    )}
+                    {task.status === 'overdue' && <Badge variant="destructive">Overdue</Badge>}
+                  </div>
+                  <div className="flex gap-2 mt-3">
+                    <Button variant="outline" size="sm" onClick={() => setCompleteTaskId(task.id)}>
+                      <CheckCircle2 className="w-3 h-3 mr-1" /> Done
+                    </Button>
+                    <Button variant="ghost" size="sm" onClick={() => deleteTask(task.id)} className="text-destructive">Delete</Button>
                   </div>
                 </div>
               ))}
