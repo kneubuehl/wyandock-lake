@@ -8,7 +8,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
-import { getParentForDate, getParentColor } from '@/lib/schedule'
+// import { getParentForDate } from '@/lib/schedule'
 import { HandoffNote, MaintenanceTask } from '@/lib/types'
 import { format, addDays, isPast, isToday, isFuture } from 'date-fns'
 import Link from 'next/link'
@@ -93,7 +93,6 @@ export default function HomePage() {
   }
 
   const today = new Date()
-  const parentToday = getParentForDate(today)
 
   const quickLinks = [
     { href: '/calendar', label: 'Calendar', icon: CalendarDays },
@@ -128,22 +127,6 @@ export default function HomePage() {
             </div>
           </CardHeader>
           <CardContent className="space-y-4">
-            {/* Current parent week */}
-            {parentToday && (
-              <div className="flex items-center gap-2">
-                <Badge className={`${getParentColor(parentToday)} text-sm px-3 py-1`}>
-                  {parentToday}&apos;s Week
-                </Badge>
-              </div>
-            )}
-
-            {/* Last visitor */}
-            {lastVisitor && (
-              <div className="text-xs text-muted-foreground">
-                Last visit: <span className="font-medium text-foreground">{lastVisitor.name}</span> — left {format(new Date(lastVisitor.end_date), 'MMM d')}
-              </div>
-            )}
-
             {/* Upcoming reservations */}
             {upcomingReservations.length > 0 ? (
               <div className="space-y-2">
@@ -168,6 +151,13 @@ export default function HomePage() {
               </div>
             ) : (
               <p className="text-sm text-muted-foreground">No upcoming reservations</p>
+            )}
+
+            {/* Last visitor */}
+            {lastVisitor && (
+              <div className="text-xs text-muted-foreground border-t pt-3">
+                Last visit: <span className="font-medium text-foreground">{lastVisitor.name}</span> — left {format(new Date(lastVisitor.end_date), 'MMM d')}
+              </div>
             )}
 
             {/* Link to calendar */}

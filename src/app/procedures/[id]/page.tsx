@@ -171,7 +171,7 @@ export default function ProcedureDetailPage() {
             </div>
           </div>
         ) : (
-          <div className="prose prose-sm max-w-none bg-white p-6 rounded-lg border" dangerouslySetInnerHTML={{ __html: procedure.content }} />
+          <div className="rich-content text-sm bg-white p-6 rounded-lg border" dangerouslySetInnerHTML={{ __html: procedure.content }} />
         )}
       </div>
     </AppShell>
