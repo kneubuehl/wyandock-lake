@@ -4,8 +4,8 @@ import { useState } from 'react'
 import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { toast } from 'sonner'
+import Image from 'next/image'
 
 export default function LoginPage() {
   const [email, setEmail] = useState('')
@@ -30,29 +30,44 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-lake-gradient px-4">
-      {/* Subtle water ripple effect */}
-      <div className="absolute inset-0 opacity-5">
-        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/10 to-transparent" />
+    <div className="min-h-screen flex flex-col md:flex-row">
+      {/* Cover photo side */}
+      <div className="relative w-full md:w-1/2 h-56 md:h-screen">
+        <Image
+          src="/lake-hero.jpg"
+          alt="Wyandock Lake sunset"
+          fill
+          className="object-cover"
+          priority
+        />
+        {/* Overlay with branding */}
+        <div className="absolute inset-0 bg-gradient-to-b md:bg-gradient-to-r from-black/30 via-black/10 to-transparent" />
+        <div className="absolute bottom-6 left-6 md:bottom-auto md:top-1/2 md:-translate-y-1/2 md:left-10 text-white">
+          <h1 className="text-4xl md:text-5xl font-bold tracking-tight drop-shadow-lg">Up North</h1>
+          <p className="text-sm md:text-base text-white/80 mt-1 drop-shadow uppercase tracking-widest">Wyandock Lake</p>
+        </div>
       </div>
 
-      <Card className="w-full max-w-sm shadow-2xl border-0 relative z-10">
-        <CardHeader className="text-center pb-3">
-          <div className="text-5xl mb-1">🦅</div>
-          <CardTitle className="text-2xl font-semibold text-[#1E3A5F] tracking-tight">Up North</CardTitle>
-          <CardDescription className="text-sm">Kneubuehl Family Lake House</CardDescription>
-          <p className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-widest">Wyandock Lake • Minocqua</p>
-        </CardHeader>
-        <CardContent className="space-y-3 pt-2">
+      {/* Login form side */}
+      <div className="flex-1 flex items-center justify-center bg-[#F7F9FC] px-6 py-12 md:py-0">
+        <div className="w-full max-w-sm space-y-6">
+          <div className="text-center md:text-left">
+            <div className="w-12 h-12 rounded-xl overflow-hidden shadow-md mx-auto md:mx-0 mb-4">
+              <Image src="/lake-hero.jpg" alt="Up North" width={48} height={48} className="object-cover w-full h-full" />
+            </div>
+            <h2 className="text-xl font-semibold text-[#1E3A5F]">Welcome back</h2>
+            <p className="text-sm text-muted-foreground mt-1">Sign in to your lake house dashboard</p>
+          </div>
+
           {!sent ? (
-            <>
+            <div className="space-y-3">
               <Input
                 type="email"
                 placeholder="Enter your email"
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendMagicLink()}
-                className="h-11"
+                className="h-11 bg-white"
               />
               <Button
                 onClick={sendMagicLink}
@@ -61,27 +76,33 @@ export default function LoginPage() {
               >
                 {loading ? 'Sending...' : 'Send Magic Link'}
               </Button>
-            </>
+            </div>
           ) : (
-            <div className="text-center space-y-3 py-3">
+            <div className="space-y-4 text-center md:text-left">
               <div className="text-3xl">✉️</div>
-              <p className="text-sm text-muted-foreground">
-                We sent a login link to <strong>{email}</strong>
-              </p>
-              <p className="text-xs text-muted-foreground">
-                Click the link in your email to sign in.
-              </p>
+              <div>
+                <p className="text-sm text-muted-foreground">
+                  We sent a login link to <strong>{email}</strong>
+                </p>
+                <p className="text-xs text-muted-foreground mt-2">
+                  Click the link in your email to sign in.
+                </p>
+              </div>
               <Button
                 variant="ghost"
                 onClick={() => { setSent(false); setEmail('') }}
-                className="w-full text-sm"
+                className="text-sm"
               >
                 Try a different email
               </Button>
             </div>
           )}
-        </CardContent>
-      </Card>
+
+          <p className="text-[10px] text-muted-foreground text-center uppercase tracking-widest pt-4">
+            Kneubuehl Family • Minocqua, WI
+          </p>
+        </div>
+      </div>
     </div>
   )
 }

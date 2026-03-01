@@ -73,7 +73,9 @@ export default function HomePage() {
   if (loading || !user) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
-        <span className="text-4xl animate-pulse">🦅</span>
+        <div className="w-16 h-16 rounded-2xl overflow-hidden shadow-lg animate-pulse">
+          <img src="/lake-hero.jpg" alt="Up North" className="object-cover w-full h-full" />
+        </div>
       </div>
     )
   }

@@ -2,6 +2,7 @@
 
 import { ReactNode, useState, useEffect } from 'react'
 import Link from 'next/link'
+import Image from 'next/image'
 import { usePathname } from 'next/navigation'
 import { useAuth } from '@/lib/auth-context'
 import {
@@ -80,7 +81,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       {/* Desktop Sidebar */}
       <aside className="hidden md:flex md:w-60 md:flex-col md:fixed md:inset-y-0 bg-lake-gradient">
         <div className="flex items-center gap-3 px-5 py-5 border-b border-white/10">
-          <span className="text-2xl">🦅</span>
+          <div className="w-9 h-9 rounded-lg overflow-hidden shadow-md shrink-0">
+            <Image src="/lake-hero.jpg" alt="Up North" width={36} height={36} className="object-cover w-full h-full" />
+          </div>
           <div>
             <h1 className="text-lg font-semibold text-[#C8A97E] tracking-tight">Up North</h1>
             <p className="text-[10px] text-blue-200/60 uppercase tracking-widest">Wyandock Lake</p>
@@ -130,7 +133,9 @@ export function AppShell({ children }: { children: ReactNode }) {
       <header className="md:hidden sticky top-0 z-50 bg-lake-gradient shadow-lg">
         <div className="flex items-center justify-between px-4 py-3">
           <div className="flex items-center gap-2">
-            <span className="text-xl">🦅</span>
+            <div className="w-7 h-7 rounded-md overflow-hidden shadow-sm shrink-0">
+              <Image src="/lake-hero.jpg" alt="Up North" width={28} height={28} className="object-cover w-full h-full" />
+            </div>
             <h1 className="text-base font-semibold text-[#C8A97E] tracking-tight">Up North</h1>
           </div>
           <div className="flex items-center gap-3">
