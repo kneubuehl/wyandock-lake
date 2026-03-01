@@ -8,7 +8,7 @@ import { useAuth } from '@/lib/auth-context'
 import {
   Home, CalendarDays, BookOpen, ClipboardList, Wrench,
   Lock, Phone, Menu, LogOut, X, CloudSun, Droplets, Wind,
-  ThermometerSun, Cloud, Sun, CloudRain, CloudSnow, CloudLightning
+  ThermometerSun, Cloud, Sun, CloudRain, CloudSnow, CloudLightning, Lightbulb
 } from 'lucide-react'
 import { Button } from '@/components/ui/button'
 import { Sheet, SheetContent, SheetTrigger } from '@/components/ui/sheet'
@@ -21,6 +21,7 @@ const navItems = [
   { href: '/maintenance', label: 'Maintenance', icon: Wrench },
   { href: '/codes', label: 'Codes', icon: Lock },
   { href: '/contacts', label: 'Contacts', icon: Phone },
+  { href: '/wishlist', label: 'Wish List', icon: Lightbulb },
 ]
 
 interface WeatherData {

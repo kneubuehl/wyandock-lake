@@ -14,7 +14,7 @@ import { format, addDays, isPast, isToday, isFuture } from 'date-fns'
 import Link from 'next/link'
 import {
   CalendarDays, ClipboardList, Wrench, BookOpen,
-  Lock, Phone, Users, ArrowRight, CircleDot, Waves
+  Lock, Phone, Users, ArrowRight, CircleDot, Waves, Lightbulb
 } from 'lucide-react'
 
 interface Reservation {
@@ -101,6 +101,7 @@ export default function HomePage() {
     { href: '/codes', label: 'Codes', icon: Lock },
     { href: '/contacts', label: 'Contacts', icon: Phone },
     { href: '/notes', label: 'Notes', icon: ClipboardList },
+    { href: '/wishlist', label: 'Wish List', icon: Lightbulb },
   ]
 
   return (
