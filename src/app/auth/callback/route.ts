@@ -1,28 +1,53 @@
-import { createClient } from '@supabase/supabase-js'
+import { createServerClient } from '@supabase/ssr'
+import { cookies } from 'next/headers'
 import { NextResponse } from 'next/server'
 
 export async function GET(request: Request) {
   const { searchParams, origin } = new URL(request.url)
   const code = searchParams.get('code')
   const token_hash = searchParams.get('token_hash')
-  const type = searchParams.get('type')
+  const type = searchParams.get('type') as 'email' | 'magiclink' | null
+  const next = searchParams.get('next') ?? '/'
+
+  const cookieStore = await cookies()
+
+  const supabase = createServerClient(
+    process.env.NEXT_PUBLIC_SUPABASE_URL!,
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      cookies: {
+        getAll() {
+          return cookieStore.getAll()
+        },
+        setAll(cookiesToSet) {
+          try {
+            cookiesToSet.forEach(({ name, value, options }) =>
+              cookieStore.set(name, value, options)
+            )
+          } catch {
+            // The `setAll` method is called from a Server Component
+          }
+        },
+      },
+    }
+  )
 
   // Handle PKCE flow (code exchange)
   if (code) {
-    const supabase = createClient(
-      process.env.NEXT_PUBLIC_SUPABASE_URL!,
-      process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
-    )
-    await supabase.auth.exchangeCodeForSession(code)
-    return NextResponse.redirect(`${origin}/`)
+    const { error } = await supabase.auth.exchangeCodeForSession(code)
+    if (!error) {
+      return NextResponse.redirect(`${origin}${next}`)
+    }
   }
 
-  // Handle token hash flow (magic link)
+  // Handle token hash flow (magic link / OTP)
   if (token_hash && type) {
-    // Redirect to home with hash params so client can pick it up
-    return NextResponse.redirect(`${origin}/#access_token=${token_hash}&type=${type}`)
+    const { error } = await supabase.auth.verifyOtp({ token_hash, type })
+    if (!error) {
+      return NextResponse.redirect(`${origin}${next}`)
+    }
   }
 
-  // Fallback
-  return NextResponse.redirect(`${origin}/login`)
+  // Something went wrong — redirect to login with error
+  return NextResponse.redirect(`${origin}/login?error=auth_failed`)
 }
