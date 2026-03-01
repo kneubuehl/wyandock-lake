@@ -11,12 +11,13 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogTrigger } from 
 import { Input } from '@/components/ui/input'
 import { Textarea } from '@/components/ui/textarea'
 import { Label } from '@/components/ui/label'
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '@/components/ui/select'
 import { supabase } from '@/lib/supabase'
 import { getParentForDate, getParentColor, getParentBgColor, ParentName } from '@/lib/schedule'
-import { Reservation } from '@/lib/types'
+import { Reservation, Profile } from '@/lib/types'
 import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek,
-  isSameMonth, isSameDay, isToday, addMonths, subMonths, isWithinInterval, parseISO
+  isSameMonth, isSameDay, isToday, addMonths, subMonths, isWithinInterval, parseISO, addDays
 } from 'date-fns'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { toast } from 'sonner'
@@ -26,12 +27,26 @@ export default function CalendarPage() {
   const router = useRouter()
   const [currentMonth, setCurrentMonth] = useState(new Date())
   const [reservations, setReservations] = useState<Reservation[]>([])
+  const [profiles, setProfiles] = useState<Profile[]>([])
   const [dialogOpen, setDialogOpen] = useState(false)
-  const [form, setForm] = useState({ start_date: '', end_date: '', notes: '' })
+
+  const todayStr = format(new Date(), 'yyyy-MM-dd')
+  const defaultEnd = format(addDays(new Date(), 3), 'yyyy-MM-dd')
+  const [form, setForm] = useState({ start_date: todayStr, end_date: defaultEnd, notes: '', user_id: '' })
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
   }, [loading, user, router])
+
+  useEffect(() => {
+    if (!user) return
+    // Set default user_id when user loads
+    setForm(f => ({ ...f, user_id: f.user_id || user.id }))
+    // Fetch all profiles for the "For" selector
+    supabase.from('profiles').select('*').order('display_name').then(({ data }) => {
+      if (data) setProfiles(data)
+    })
+  }, [user])
 
   useEffect(() => {
     fetchReservations()
@@ -49,10 +64,15 @@ export default function CalendarPage() {
     if (data) setReservations(data as unknown as Reservation[])
   }
 
+  function handleStartDateChange(newStart: string) {
+    const endDate = format(addDays(new Date(newStart), 3), 'yyyy-MM-dd')
+    setForm(f => ({ ...f, start_date: newStart, end_date: endDate }))
+  }
+
   async function createReservation() {
-    if (!form.start_date || !form.end_date) return
+    if (!form.start_date || !form.end_date || !form.user_id) return
     const { error } = await supabase.from('reservations').insert({
-      user_id: user!.id,
+      user_id: form.user_id,
       start_date: form.start_date,
       end_date: form.end_date,
       notes: form.notes || null,
@@ -60,7 +80,7 @@ export default function CalendarPage() {
     if (error) { toast.error(error.message); return }
     toast.success('Reservation added!')
     setDialogOpen(false)
-    setForm({ start_date: '', end_date: '', notes: '' })
+    setForm({ start_date: todayStr, end_date: defaultEnd, notes: '', user_id: user!.id })
     fetchReservations()
   }
 
@@ -88,10 +108,17 @@ export default function CalendarPage() {
     <AppShell>
       <div className="space-y-6 pb-20 md:pb-0">
         <div className="flex items-center justify-between">
-          <h1 className="text-2xl font-bold text-[#1B4332]">Calendar</h1>
-          <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+          <h1 className="text-2xl font-bold text-[#1E3A5F]">Calendar</h1>
+          <Dialog open={dialogOpen} onOpenChange={(open) => {
+            setDialogOpen(open)
+            if (open) {
+              const t = format(new Date(), 'yyyy-MM-dd')
+              const e = format(addDays(new Date(), 3), 'yyyy-MM-dd')
+              setForm({ start_date: t, end_date: e, notes: '', user_id: user!.id })
+            }
+          }}>
             <DialogTrigger asChild>
-              <Button className="bg-[#1B4332] hover:bg-[#2D6A4F]">
+              <Button className="bg-[#1E3A5F] hover:bg-[#2a4f7a]">
                 <Plus className="w-4 h-4 mr-2" /> Add Reservation
               </Button>
             </DialogTrigger>
@@ -100,10 +127,23 @@ export default function CalendarPage() {
                 <DialogTitle>New Reservation</DialogTitle>
               </DialogHeader>
               <div className="space-y-4">
+                <div>
+                  <Label>For</Label>
+                  <Select value={form.user_id} onValueChange={(val) => setForm(f => ({ ...f, user_id: val }))}>
+                    <SelectTrigger className="w-full">
+                      <SelectValue placeholder="Select family member" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {profiles.map(p => (
+                        <SelectItem key={p.id} value={p.id}>{p.display_name}</SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
                 <div className="grid grid-cols-2 gap-4">
                   <div>
                     <Label>Arrive</Label>
-                    <Input type="date" value={form.start_date} onChange={e => setForm(f => ({ ...f, start_date: e.target.value }))} />
+                    <Input type="date" value={form.start_date} onChange={e => handleStartDateChange(e.target.value)} />
                   </div>
                   <div>
                     <Label>Depart</Label>
@@ -114,7 +154,7 @@ export default function CalendarPage() {
                   <Label>Notes (optional)</Label>
                   <Textarea value={form.notes} onChange={e => setForm(f => ({ ...f, notes: e.target.value }))} placeholder="e.g. Bringing the kids" />
                 </div>
-                <Button onClick={createReservation} className="w-full bg-[#1B4332] hover:bg-[#2D6A4F]">
+                <Button onClick={createReservation} className="w-full bg-[#1E3A5F] hover:bg-[#2a4f7a]">
                   Save Reservation
                 </Button>
               </div>
@@ -133,7 +173,7 @@ export default function CalendarPage() {
             <span>Stephen Sr.&apos;s Week</span>
           </div>
           <div className="flex items-center gap-1.5">
-            <div className="w-3 h-3 rounded bg-[#D4A574]" />
+            <div className="w-3 h-3 rounded bg-[#C8A97E]" />
             <span>Reservation</span>
           </div>
         </div>
@@ -173,12 +213,12 @@ export default function CalendarPage() {
                     style={parent && inMonth ? { backgroundColor: getParentBgColor(parent) } : {}}
                   >
                     <div className={`text-xs font-medium mb-0.5 ${
-                      isToday(day) ? 'bg-[#1B4332] text-white w-6 h-6 rounded-full flex items-center justify-center' : ''
+                      isToday(day) ? 'bg-[#1E3A5F] text-white w-6 h-6 rounded-full flex items-center justify-center' : ''
                     }`}>
                       {format(day, 'd')}
                     </div>
                     {dayReservations.map(r => (
-                      <div key={r.id} className="text-[10px] bg-[#D4A574] text-white rounded px-1 truncate mb-0.5 cursor-pointer" title={(r as any).profiles?.display_name}>
+                      <div key={r.id} className="text-[10px] bg-[#C8A97E] text-white rounded px-1 truncate mb-0.5 cursor-pointer" title={(r as any).profiles?.display_name}>
                         {(r as any).profiles?.display_name?.split(' ')[0] || 'Guest'}
                       </div>
                     ))}

@@ -6,6 +6,7 @@ import { useEffect, useState } from 'react'
 import { AppShell } from '@/components/app-shell'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
+import { Button } from '@/components/ui/button'
 import { supabase } from '@/lib/supabase'
 import { getParentForDate, getParentColor } from '@/lib/schedule'
 import { HandoffNote, MaintenanceTask } from '@/lib/types'
@@ -13,7 +14,7 @@ import { format, addDays, isPast, isToday, isFuture } from 'date-fns'
 import Link from 'next/link'
 import {
   CalendarDays, ClipboardList, Wrench, BookOpen,
-  Lock, Phone, Users, ArrowRight, CircleDot, CheckCircle2
+  Lock, Phone, Users, ArrowRight, CircleDot, Waves
 } from 'lucide-react'
 
 interface Reservation {
@@ -30,7 +31,8 @@ export default function HomePage() {
   const router = useRouter()
   const [notes, setNotes] = useState<HandoffNote[]>([])
   const [tasks, setTasks] = useState<MaintenanceTask[]>([])
-  const [reservations, setReservations] = useState<Reservation[]>([])
+  const [upcomingReservations, setUpcomingReservations] = useState<Reservation[]>([])
+  const [lastVisitor, setLastVisitor] = useState<{ name: string; end_date: string } | null>(null)
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
@@ -39,17 +41,33 @@ export default function HomePage() {
   useEffect(() => {
     if (!user) return
 
-    // Fetch upcoming reservations (next 30 days)
     const today = new Date().toISOString().split('T')[0]
-    const thirtyDays = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
+
+    // Fetch upcoming reservations (up to 3, starting from today)
     supabase
       .from('reservations')
       .select('*, profiles:user_id(display_name)')
       .gte('end_date', today)
-      .lte('start_date', thirtyDays)
       .order('start_date', { ascending: true })
-      .limit(5)
-      .then(({ data }) => { if (data) setReservations(data as unknown as Reservation[]) })
+      .limit(3)
+      .then(({ data }) => { if (data) setUpcomingReservations(data as unknown as Reservation[]) })
+
+    // Fetch most recent past reservation
+    supabase
+      .from('reservations')
+      .select('*, profiles:user_id(display_name)')
+      .lt('end_date', today)
+      .order('end_date', { ascending: false })
+      .limit(1)
+      .then(({ data }) => {
+        if (data && data.length > 0) {
+          const r = data[0] as unknown as Reservation
+          setLastVisitor({
+            name: r.profiles?.display_name || 'Unknown',
+            end_date: r.end_date,
+          })
+        }
+      })
 
     // Fetch open handoff notes
     supabase
@@ -82,10 +100,6 @@ export default function HomePage() {
 
   const today = new Date()
   const parentToday = getParentForDate(today)
-  const parentNextWeek = getParentForDate(addDays(today, 7))
-
-  // Find most recent past reservation (last visitor)
-  const pastReservations = reservations.filter(r => isPast(new Date(r.end_date)) && !isToday(new Date(r.end_date)))
 
   const quickLinks = [
     { href: '/calendar', label: 'Calendar', icon: CalendarDays },
@@ -107,75 +121,71 @@ export default function HomePage() {
           <p className="text-sm text-muted-foreground mt-0.5">{format(today, 'EEEE, MMMM d')}</p>
         </div>
 
-        {/* Reservations & Schedule Row */}
-        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-          {/* Upcoming Reservations */}
-          <Card className="card-hover">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                  <Users className="w-4 h-4" /> Upcoming Visits
-                </CardTitle>
-                <Link href="/calendar" className="text-xs text-primary hover:underline flex items-center gap-1">
-                  Calendar <ArrowRight className="w-3 h-3" />
-                </Link>
-              </div>
-            </CardHeader>
-            <CardContent>
-              {reservations.length > 0 ? (
-                <div className="space-y-2.5">
-                  {reservations.map(r => {
-                    const start = new Date(r.start_date)
-                    const end = new Date(r.end_date)
-                    const isNow = !isFuture(start) && !isPast(end)
-                    return (
-                      <div key={r.id} className={`flex items-center gap-3 p-2.5 rounded-lg ${isNow ? 'bg-blue-50 border border-blue-100' : 'bg-muted/40'}`}>
-                        <div className={`w-1.5 h-8 rounded-full ${isNow ? 'bg-blue-400' : 'bg-muted-foreground/20'}`} />
-                        <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium truncate">{r.profiles?.display_name || 'Unknown'}</p>
-                          <p className="text-xs text-muted-foreground">
-                            {format(start, 'MMM d')} – {format(end, 'MMM d')}
-                            {isNow && <span className="ml-1.5 text-blue-600 font-medium">• There now</span>}
-                          </p>
-                        </div>
-                      </div>
-                    )
-                  })}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground py-2">No upcoming reservations</p>
-              )}
-            </CardContent>
-          </Card>
-
-          {/* Schedule Card */}
-          <Card className="card-hover">
-            <CardHeader className="pb-2">
+        {/* At the Lake — Consolidated Card */}
+        <Card className="card-hover">
+          <CardHeader className="pb-2">
+            <div className="flex items-center justify-between">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <CalendarDays className="w-4 h-4" /> This Week's Schedule
+                <Waves className="w-4 h-4" /> At the Lake
               </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {parentToday ? (
-                <div className="space-y-3">
-                  <div className="flex items-center gap-3">
-                    <Badge className={`${getParentColor(parentToday)} text-sm px-3 py-1`}>{parentToday}&apos;s Week</Badge>
-                  </div>
-                  {parentNextWeek && (
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <span>Next week:</span>
-                      <Badge variant="outline" className="text-xs">{parentNextWeek}</Badge>
-                    </div>
-                  )}
-                </div>
-              ) : (
-                <p className="text-sm text-muted-foreground">No schedule data</p>
-              )}
-            </CardContent>
-          </Card>
-        </div>
+              <Link href="/calendar" className="text-xs text-primary hover:underline flex items-center gap-1">
+                Calendar <ArrowRight className="w-3 h-3" />
+              </Link>
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Current parent week */}
+            {parentToday && (
+              <div className="flex items-center gap-2">
+                <Badge className={`${getParentColor(parentToday)} text-sm px-3 py-1`}>
+                  {parentToday}&apos;s Week
+                </Badge>
+              </div>
+            )}
 
-        {/* Open Notes (right under calendar/schedule area) */}
+            {/* Last visitor */}
+            {lastVisitor && (
+              <div className="text-xs text-muted-foreground">
+                Last visit: <span className="font-medium text-foreground">{lastVisitor.name}</span> — left {format(new Date(lastVisitor.end_date), 'MMM d')}
+              </div>
+            )}
+
+            {/* Upcoming reservations */}
+            {upcomingReservations.length > 0 ? (
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Upcoming</p>
+                {upcomingReservations.map(r => {
+                  const start = new Date(r.start_date)
+                  const end = new Date(r.end_date)
+                  const isNow = !isFuture(start) && !isPast(end)
+                  return (
+                    <div key={r.id} className={`flex items-center gap-3 p-2.5 rounded-lg ${isNow ? 'bg-blue-50 border border-blue-100' : 'bg-muted/40'}`}>
+                      <div className={`w-1.5 h-8 rounded-full ${isNow ? 'bg-blue-400' : 'bg-muted-foreground/20'}`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{r.profiles?.display_name || 'Unknown'}</p>
+                        <p className="text-xs text-muted-foreground">
+                          {format(start, 'MMM d')} – {format(end, 'MMM d')}
+                          {isNow && <span className="ml-1.5 text-blue-600 font-medium">• There now</span>}
+                        </p>
+                      </div>
+                    </div>
+                  )
+                })}
+              </div>
+            ) : (
+              <p className="text-sm text-muted-foreground">No upcoming reservations</p>
+            )}
+
+            {/* Link to calendar */}
+            <Link href="/calendar">
+              <Button variant="outline" size="sm" className="w-full mt-1">
+                <CalendarDays className="w-4 h-4 mr-2" /> View Full Calendar
+              </Button>
+            </Link>
+          </CardContent>
+        </Card>
+
+        {/* Open Notes */}
         {notes.length > 0 && (
           <Card className="card-hover">
             <CardHeader className="pb-2">
@@ -207,7 +217,7 @@ export default function HomePage() {
           </Card>
         )}
 
-        {/* Quick Links — Compact */}
+        {/* Quick Links */}
         <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
           {quickLinks.map(link => (
             <Link key={link.href} href={link.href}>

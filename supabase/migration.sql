@@ -80,7 +80,7 @@ ALTER TABLE public.reservations ENABLE ROW LEVEL SECURITY;
 CREATE POLICY "Reservations viewable by authenticated" ON public.reservations
   FOR SELECT USING (auth.role() = 'authenticated');
 CREATE POLICY "Users can insert reservations" ON public.reservations
-  FOR INSERT WITH CHECK (auth.uid() = user_id);
+  FOR INSERT WITH CHECK (auth.role() = 'authenticated');
 CREATE POLICY "Users can update own reservations" ON public.reservations
   FOR UPDATE USING (auth.uid() = user_id);
 CREATE POLICY "Users can delete own reservations" ON public.reservations
