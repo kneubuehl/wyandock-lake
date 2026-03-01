@@ -9,46 +9,47 @@ import { Badge } from '@/components/ui/badge'
 import { supabase } from '@/lib/supabase'
 import { getParentForDate, getParentColor } from '@/lib/schedule'
 import { HandoffNote, MaintenanceTask } from '@/lib/types'
-import { format, addDays } from 'date-fns'
+import { format, addDays, isPast, isToday, isFuture } from 'date-fns'
 import Link from 'next/link'
 import {
-  CalendarDays, CloudSun, ClipboardList, Wrench, BookOpen,
-  Lock, Phone, ThermometerSun, Droplets, Wind
+  CalendarDays, ClipboardList, Wrench, BookOpen,
+  Lock, Phone, Users, ArrowRight, CircleDot, CheckCircle2
 } from 'lucide-react'
 
-interface WeatherData {
-  temperature: number
-  weathercode: number
-  windspeed: number
-  humidity: number
+interface Reservation {
+  id: string
+  user_id: string
+  start_date: string
+  end_date: string
+  notes?: string
+  profiles?: { display_name: string }
 }
 
 export default function HomePage() {
   const { user, profile, loading } = useAuth()
   const router = useRouter()
-  const [weather, setWeather] = useState<WeatherData | null>(null)
   const [notes, setNotes] = useState<HandoffNote[]>([])
   const [tasks, setTasks] = useState<MaintenanceTask[]>([])
+  const [reservations, setReservations] = useState<Reservation[]>([])
 
   useEffect(() => {
     if (!loading && !user) router.push('/login')
   }, [loading, user, router])
 
   useEffect(() => {
-    // Fetch weather from Open-Meteo (Minocqua, WI: 45.87, -89.71)
-    fetch('https://api.open-meteo.com/v1/forecast?latitude=45.87&longitude=-89.71&current_weather=true&temperature_unit=fahrenheit')
-      .then(r => r.json())
-      .then(data => {
-        if (data.current_weather) {
-          setWeather({
-            temperature: data.current_weather.temperature,
-            weathercode: data.current_weather.weathercode,
-            windspeed: data.current_weather.windspeed,
-            humidity: 0,
-          })
-        }
-      })
-      .catch(() => {})
+    if (!user) return
+
+    // Fetch upcoming reservations (next 30 days)
+    const today = new Date().toISOString().split('T')[0]
+    const thirtyDays = new Date(Date.now() + 30 * 86400000).toISOString().split('T')[0]
+    supabase
+      .from('reservations')
+      .select('*, profiles:user_id(display_name)')
+      .gte('end_date', today)
+      .lte('start_date', thirtyDays)
+      .order('start_date', { ascending: true })
+      .limit(5)
+      .then(({ data }) => { if (data) setReservations(data as unknown as Reservation[]) })
 
     // Fetch open handoff notes
     supabase
@@ -67,180 +68,188 @@ export default function HomePage() {
       .order('next_due_date', { ascending: true })
       .limit(5)
       .then(({ data }) => { if (data) setTasks(data) })
-  }, [])
+  }, [user])
 
-  if (loading || !user) return <div className="min-h-screen flex items-center justify-center bg-background"><span className="text-4xl animate-pulse">🦅</span></div>
+  if (loading || !user) {
+    return (
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <span className="text-4xl animate-pulse">🦅</span>
+      </div>
+    )
+  }
 
   const today = new Date()
   const parentToday = getParentForDate(today)
   const parentNextWeek = getParentForDate(addDays(today, 7))
 
-  const weatherDesc = getWeatherDescription(weather?.weathercode ?? 0)
+  // Find most recent past reservation (last visitor)
+  const pastReservations = reservations.filter(r => isPast(new Date(r.end_date)) && !isToday(new Date(r.end_date)))
 
   const quickLinks = [
-    { href: '/calendar', label: 'Calendar', icon: CalendarDays, color: 'bg-blue-50 text-blue-700' },
-    { href: '/procedures', label: 'Procedures', icon: BookOpen, color: 'bg-green-50 text-green-700' },
-    { href: '/notes', label: 'Handoff Notes', icon: ClipboardList, color: 'bg-amber-50 text-amber-700' },
-    { href: '/maintenance', label: 'Maintenance', icon: Wrench, color: 'bg-purple-50 text-purple-700' },
-    { href: '/codes', label: 'Security Codes', icon: Lock, color: 'bg-red-50 text-red-700' },
-    { href: '/contacts', label: 'Vendor Contacts', icon: Phone, color: 'bg-teal-50 text-teal-700' },
+    { href: '/calendar', label: 'Calendar', icon: CalendarDays },
+    { href: '/procedures', label: 'Procedures', icon: BookOpen },
+    { href: '/maintenance', label: 'Maintenance', icon: Wrench },
+    { href: '/codes', label: 'Codes', icon: Lock },
+    { href: '/contacts', label: 'Contacts', icon: Phone },
+    { href: '/notes', label: 'Notes', icon: ClipboardList },
   ]
 
   return (
     <AppShell>
-      <div className="space-y-6 pb-20 md:pb-0">
+      <div className="space-y-5 pb-20 md:pb-0">
         {/* Welcome */}
         <div>
-          <h1 className="text-2xl md:text-3xl font-bold text-[#1B4332]">
-            Welcome{profile?.display_name ? `, ${profile.display_name.split(' ')[0]}` : ''} 🦅
+          <h1 className="text-xl md:text-2xl font-semibold text-foreground tracking-tight">
+            Welcome back{profile?.display_name ? `, ${profile.display_name.split(' ')[0]}` : ''}
           </h1>
-          <p className="text-muted-foreground mt-1">{format(today, 'EEEE, MMMM d, yyyy')}</p>
+          <p className="text-sm text-muted-foreground mt-0.5">{format(today, 'EEEE, MMMM d')}</p>
         </div>
 
-        {/* Top Cards Row */}
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-          {/* Schedule Card */}
-          <Card>
+        {/* Reservations & Schedule Row */}
+        <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+          {/* Upcoming Reservations */}
+          <Card className="card-hover">
             <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <CalendarDays className="w-4 h-4" /> This Week
-              </CardTitle>
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Users className="w-4 h-4" /> Upcoming Visits
+                </CardTitle>
+                <Link href="/calendar" className="text-xs text-primary hover:underline flex items-center gap-1">
+                  Calendar <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
             </CardHeader>
             <CardContent>
-              {parentToday && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2">
-                    <Badge className={getParentColor(parentToday)}>{parentToday}&apos;s Week</Badge>
-                  </div>
-                  {parentNextWeek && (
-                    <p className="text-xs text-muted-foreground">
-                      Next: {parentNextWeek}&apos;s week
-                    </p>
-                  )}
-                </div>
-              )}
-              {!parentToday && <p className="text-sm text-muted-foreground">No schedule data</p>}
-            </CardContent>
-          </Card>
-
-          {/* Weather Card */}
-          <Card>
-            <CardHeader className="pb-2">
-              <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <CloudSun className="w-4 h-4" /> Minocqua Weather
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              {weather ? (
-                <div className="space-y-1">
-                  <div className="flex items-center gap-2">
-                    <ThermometerSun className="w-5 h-5 text-[#D4A574]" />
-                    <span className="text-2xl font-bold">{Math.round(weather.temperature)}°F</span>
-                  </div>
-                  <p className="text-sm text-muted-foreground">{weatherDesc}</p>
-                  <div className="flex items-center gap-3 text-xs text-muted-foreground">
-                    <span className="flex items-center gap-1"><Wind className="w-3 h-3" /> {Math.round(weather.windspeed)} mph</span>
-                  </div>
+              {reservations.length > 0 ? (
+                <div className="space-y-2.5">
+                  {reservations.map(r => {
+                    const start = new Date(r.start_date)
+                    const end = new Date(r.end_date)
+                    const isNow = !isFuture(start) && !isPast(end)
+                    return (
+                      <div key={r.id} className={`flex items-center gap-3 p-2.5 rounded-lg ${isNow ? 'bg-blue-50 border border-blue-100' : 'bg-muted/40'}`}>
+                        <div className={`w-1.5 h-8 rounded-full ${isNow ? 'bg-blue-400' : 'bg-muted-foreground/20'}`} />
+                        <div className="flex-1 min-w-0">
+                          <p className="text-sm font-medium truncate">{r.profiles?.display_name || 'Unknown'}</p>
+                          <p className="text-xs text-muted-foreground">
+                            {format(start, 'MMM d')} – {format(end, 'MMM d')}
+                            {isNow && <span className="ml-1.5 text-blue-600 font-medium">• There now</span>}
+                          </p>
+                        </div>
+                      </div>
+                    )
+                  })}
                 </div>
               ) : (
-                <p className="text-sm text-muted-foreground">Loading weather...</p>
+                <p className="text-sm text-muted-foreground py-2">No upcoming reservations</p>
               )}
             </CardContent>
           </Card>
 
-          {/* Quick Status */}
-          <Card>
+          {/* Schedule Card */}
+          <Card className="card-hover">
             <CardHeader className="pb-2">
               <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
-                <ClipboardList className="w-4 h-4" /> Status
+                <CalendarDays className="w-4 h-4" /> This Week's Schedule
               </CardTitle>
+            </CardHeader>
+            <CardContent>
+              {parentToday ? (
+                <div className="space-y-3">
+                  <div className="flex items-center gap-3">
+                    <Badge className={`${getParentColor(parentToday)} text-sm px-3 py-1`}>{parentToday}&apos;s Week</Badge>
+                  </div>
+                  {parentNextWeek && (
+                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <span>Next week:</span>
+                      <Badge variant="outline" className="text-xs">{parentNextWeek}</Badge>
+                    </div>
+                  )}
+                </div>
+              ) : (
+                <p className="text-sm text-muted-foreground">No schedule data</p>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+
+        {/* Open Notes (right under calendar/schedule area) */}
+        {notes.length > 0 && (
+          <Card className="card-hover">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <ClipboardList className="w-4 h-4" /> Open Notes
+                  <Badge variant="secondary" className="text-xs ml-1">{notes.length}</Badge>
+                </CardTitle>
+                <Link href="/notes" className="text-xs text-primary hover:underline flex items-center gap-1">
+                  All notes <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="space-y-2">
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Open Notes</span>
-                  <Badge variant="secondary">{notes.length}</Badge>
-                </div>
-                <div className="flex justify-between text-sm">
-                  <span className="text-muted-foreground">Due Tasks</span>
-                  <Badge variant="secondary">{tasks.length}</Badge>
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-        </div>
-
-        {/* Quick Links */}
-        <div className="grid grid-cols-2 md:grid-cols-3 gap-3">
-          {quickLinks.map(link => (
-            <Link key={link.href} href={link.href}>
-              <Card className="hover:shadow-md transition-shadow cursor-pointer h-full">
-                <CardContent className="flex items-center gap-3 py-4">
-                  <div className={`p-2 rounded-lg ${link.color}`}>
-                    <link.icon className="w-5 h-5" />
-                  </div>
-                  <span className="text-sm font-medium">{link.label}</span>
-                </CardContent>
-              </Card>
-            </Link>
-          ))}
-        </div>
-
-        {/* Open Handoff Notes */}
-        {notes.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <ClipboardList className="w-5 h-5" /> Open Handoff Notes
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="space-y-3">
                 {notes.map(note => (
-                  <div key={note.id} className="flex items-start gap-3 p-3 bg-amber-50 rounded-lg border border-amber-100">
-                    <div className="w-2 h-2 rounded-full bg-amber-400 mt-2 shrink-0" />
-                    <div>
-                      <p className="text-sm">{note.content}</p>
-                      <p className="text-xs text-muted-foreground mt-1">
-                        {format(new Date(note.created_at), 'MMM d')} • {(note as any).profiles?.display_name || 'Unknown'}
+                  <div key={note.id} className="flex items-start gap-2.5 p-2.5 rounded-lg bg-amber-50/70 border border-amber-100/50">
+                    <CircleDot className="w-3.5 h-3.5 text-amber-500 mt-0.5 shrink-0" />
+                    <div className="min-w-0">
+                      <p className="text-sm leading-snug">{note.content}</p>
+                      <p className="text-[11px] text-muted-foreground mt-1">
+                        {(note as any).profiles?.display_name} • {format(new Date(note.created_at), 'MMM d')}
                       </p>
                     </div>
                   </div>
                 ))}
-                <Link href="/notes" className="text-sm text-[#2D6A4F] font-medium hover:underline">
-                  View all notes →
-                </Link>
               </div>
             </CardContent>
           </Card>
         )}
 
+        {/* Quick Links — Compact */}
+        <div className="grid grid-cols-3 md:grid-cols-6 gap-2">
+          {quickLinks.map(link => (
+            <Link key={link.href} href={link.href}>
+              <div className="card-hover flex flex-col items-center gap-1.5 py-3 px-2 rounded-xl bg-white border border-border/50 shadow-sm cursor-pointer text-center">
+                <link.icon className="w-4.5 h-4.5 text-primary/70" />
+                <span className="text-xs font-medium text-foreground/80">{link.label}</span>
+              </div>
+            </Link>
+          ))}
+        </div>
+
         {/* Upcoming Maintenance */}
         {tasks.length > 0 && (
-          <Card>
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Wrench className="w-5 h-5" /> Upcoming Maintenance
-              </CardTitle>
+          <Card className="card-hover">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardTitle className="text-sm font-medium text-muted-foreground flex items-center gap-2">
+                  <Wrench className="w-4 h-4" /> Maintenance
+                </CardTitle>
+                <Link href="/maintenance" className="text-xs text-primary hover:underline flex items-center gap-1">
+                  View all <ArrowRight className="w-3 h-3" />
+                </Link>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="space-y-3">
+              <div className="space-y-2">
                 {tasks.map(task => (
-                  <div key={task.id} className="flex items-center justify-between p-3 bg-muted/50 rounded-lg">
-                    <div>
+                  <div key={task.id} className="flex items-center justify-between p-2.5 rounded-lg bg-muted/30">
+                    <div className="min-w-0">
                       <p className="text-sm font-medium">{task.title}</p>
                       {task.next_due_date && (
-                        <p className="text-xs text-muted-foreground">Due: {format(new Date(task.next_due_date), 'MMM d, yyyy')}</p>
+                        <p className="text-xs text-muted-foreground">
+                          Due {format(new Date(task.next_due_date), 'MMM d, yyyy')}
+                        </p>
                       )}
                     </div>
-                    <Badge variant={task.status === 'overdue' ? 'destructive' : 'secondary'}>
+                    <Badge
+                      variant={task.status === 'overdue' ? 'destructive' : 'secondary'}
+                      className="text-[10px] shrink-0"
+                    >
                       {task.status}
                     </Badge>
                   </div>
                 ))}
-                <Link href="/maintenance" className="text-sm text-[#2D6A4F] font-medium hover:underline">
-                  View all tasks →
-                </Link>
               </div>
             </CardContent>
           </Card>
@@ -248,18 +257,4 @@ export default function HomePage() {
       </div>
     </AppShell>
   )
-}
-
-function getWeatherDescription(code: number): string {
-  const descriptions: Record<number, string> = {
-    0: 'Clear sky', 1: 'Mainly clear', 2: 'Partly cloudy', 3: 'Overcast',
-    45: 'Foggy', 48: 'Depositing rime fog',
-    51: 'Light drizzle', 53: 'Moderate drizzle', 55: 'Dense drizzle',
-    61: 'Slight rain', 63: 'Moderate rain', 65: 'Heavy rain',
-    71: 'Slight snow', 73: 'Moderate snow', 75: 'Heavy snow',
-    77: 'Snow grains', 80: 'Slight showers', 81: 'Moderate showers', 82: 'Violent showers',
-    85: 'Slight snow showers', 86: 'Heavy snow showers',
-    95: 'Thunderstorm', 96: 'Thunderstorm with slight hail', 99: 'Thunderstorm with heavy hail',
-  }
-  return descriptions[code] || 'Unknown'
 }

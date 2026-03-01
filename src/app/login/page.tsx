@@ -30,15 +30,20 @@ export default function LoginPage() {
   }
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-[#1B4332] px-4">
-      <Card className="w-full max-w-md shadow-2xl border-0">
-        <CardHeader className="text-center pb-2">
-          <div className="text-6xl mb-2">🦅</div>
-          <CardTitle className="text-3xl font-bold text-[#1B4332]">Up North</CardTitle>
-          <CardDescription className="text-base">Kneubuehl Family Lake House</CardDescription>
-          <p className="text-xs text-muted-foreground mt-1">Wyandock Lake • Minocqua, WI</p>
+    <div className="min-h-screen flex items-center justify-center bg-lake-gradient px-4">
+      {/* Subtle water ripple effect */}
+      <div className="absolute inset-0 opacity-5">
+        <div className="absolute bottom-0 left-0 right-0 h-1/3 bg-gradient-to-t from-white/10 to-transparent" />
+      </div>
+
+      <Card className="w-full max-w-sm shadow-2xl border-0 relative z-10">
+        <CardHeader className="text-center pb-3">
+          <div className="text-5xl mb-1">🦅</div>
+          <CardTitle className="text-2xl font-semibold text-[#1E3A5F] tracking-tight">Up North</CardTitle>
+          <CardDescription className="text-sm">Kneubuehl Family Lake House</CardDescription>
+          <p className="text-[10px] text-muted-foreground mt-0.5 uppercase tracking-widest">Wyandock Lake • Minocqua</p>
         </CardHeader>
-        <CardContent className="space-y-4 pt-4">
+        <CardContent className="space-y-3 pt-2">
           {!sent ? (
             <>
               <Input
@@ -47,29 +52,29 @@ export default function LoginPage() {
                 value={email}
                 onChange={e => setEmail(e.target.value)}
                 onKeyDown={e => e.key === 'Enter' && sendMagicLink()}
-                className="h-12"
+                className="h-11"
               />
               <Button
                 onClick={sendMagicLink}
                 disabled={loading || !email}
-                className="w-full h-12 bg-[#1B4332] hover:bg-[#2D6A4F] text-base"
+                className="w-full h-11 bg-[#1E3A5F] hover:bg-[#2D5F8A] text-sm font-medium"
               >
                 {loading ? 'Sending...' : 'Send Magic Link'}
               </Button>
             </>
           ) : (
-            <div className="text-center space-y-4 py-4">
-              <div className="text-4xl">✉️</div>
+            <div className="text-center space-y-3 py-3">
+              <div className="text-3xl">✉️</div>
               <p className="text-sm text-muted-foreground">
                 We sent a login link to <strong>{email}</strong>
               </p>
               <p className="text-xs text-muted-foreground">
-                Click the link in your email to sign in. You can close this tab.
+                Click the link in your email to sign in.
               </p>
               <Button
                 variant="ghost"
                 onClick={() => { setSent(false); setEmail('') }}
-                className="w-full"
+                className="w-full text-sm"
               >
                 Try a different email
               </Button>

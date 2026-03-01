@@ -4,42 +4,69 @@
 @custom-variant dark (&:is(.dark *));
 
 @theme inline {
-  --color-background: #FAF8F5;
-  --color-foreground: #1a1a1a;
+  --color-background: #F7F9FC;
+  --color-foreground: #0F1729;
   --color-card: #ffffff;
-  --color-card-foreground: #1a1a1a;
+  --color-card-foreground: #0F1729;
   --color-popover: #ffffff;
-  --color-popover-foreground: #1a1a1a;
-  --color-primary: #1B4332;
-  --color-primary-foreground: #FAF8F5;
-  --color-secondary: #f0ebe4;
-  --color-secondary-foreground: #1B4332;
-  --color-muted: #f0ebe4;
-  --color-muted-foreground: #6b6560;
-  --color-accent: #D4A574;
-  --color-accent-foreground: #1a1a1a;
-  --color-destructive: #dc2626;
-  --color-destructive-foreground: #FAF8F5;
-  --color-border: #e0d8cf;
-  --color-input: #e0d8cf;
-  --color-ring: #2D6A4F;
-  --color-sidebar-background: #1B4332;
-  --color-sidebar-foreground: #FAF8F5;
-  --color-sidebar-primary: #D4A574;
-  --color-sidebar-primary-foreground: #1a1a1a;
-  --color-sidebar-accent: #2D6A4F;
-  --color-sidebar-accent-foreground: #FAF8F5;
-  --color-sidebar-border: #2D6A4F;
-  --color-sidebar-ring: #D4A574;
-  --color-chart-1: #1B4332;
-  --color-chart-2: #2D6A4F;
-  --color-chart-3: #1B3A5C;
-  --color-chart-4: #D4A574;
-  --color-chart-5: #8B6F47;
-  --radius: 0.625rem;
+  --color-popover-foreground: #0F1729;
+  --color-primary: #1E3A5F;
+  --color-primary-foreground: #F7F9FC;
+  --color-secondary: #EDF2F7;
+  --color-secondary-foreground: #1E3A5F;
+  --color-muted: #EDF2F7;
+  --color-muted-foreground: #64748B;
+  --color-accent: #C8A97E;
+  --color-accent-foreground: #0F1729;
+  --color-destructive: #E53E3E;
+  --color-destructive-foreground: #F7F9FC;
+  --color-border: #E2E8F0;
+  --color-input: #E2E8F0;
+  --color-ring: #3B82A0;
+  --color-sidebar-background: #0F2440;
+  --color-sidebar-foreground: #F7F9FC;
+  --color-sidebar-primary: #C8A97E;
+  --color-sidebar-primary-foreground: #0F1729;
+  --color-sidebar-accent: #1E3A5F;
+  --color-sidebar-accent-foreground: #F7F9FC;
+  --color-sidebar-border: #1E3A5F;
+  --color-sidebar-ring: #C8A97E;
+  --color-chart-1: #1E3A5F;
+  --color-chart-2: #3B82A0;
+  --color-chart-3: #5BA4C9;
+  --color-chart-4: #C8A97E;
+  --color-chart-5: #2D5F8A;
+  --radius: 0.75rem;
   --font-sans: 'Inter', system-ui, -apple-system, sans-serif;
 }
 
 body {
   font-family: var(--font-sans);
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+/* Glass morphism cards */
+.glass-card {
+  background: rgba(255, 255, 255, 0.8);
+  backdrop-filter: blur(12px);
+  border: 1px solid rgba(226, 232, 240, 0.6);
+}
+
+/* Subtle gradient backgrounds */
+.bg-lake-gradient {
+  background: linear-gradient(135deg, #0F2440 0%, #1E3A5F 50%, #2D5F8A 100%);
+}
+
+.bg-lake-gradient-light {
+  background: linear-gradient(135deg, #EDF2F7 0%, #E2EAF4 50%, #D4E0ED 100%);
+}
+
+/* Smooth transitions */
+.card-hover {
+  transition: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
+}
+.card-hover:hover {
+  transform: translateY(-1px);
+  box-shadow: 0 8px 24px rgba(15, 36, 64, 0.08);
 }
