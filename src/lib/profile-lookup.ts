@@ -1,5 +1,15 @@
 import { supabaseAdmin } from './supabase-admin'
 
+// Spouse → primary member mapping for reservations
+// Reservations made by a spouse should be listed under the primary member
+const SPOUSE_TO_PRIMARY: Record<string, string> = {
+  'shannon': 'Tyler',
+}
+
+export function getPrimaryMemberName(name: string): string | null {
+  return SPOUSE_TO_PRIMARY[name.toLowerCase()] || null
+}
+
 export async function findProfileByName(name: string) {
   const { data: profiles, error } = await supabaseAdmin
     .from('profiles')

@@ -38,13 +38,26 @@ export default function CalendarPage() {
     if (!loading && !user) router.push('/login')
   }, [loading, user, router])
 
+  // Spouse → primary member mapping for reservations
+  const SPOUSE_TO_PRIMARY: Record<string, string> = {
+    'Shannon': 'Tyler',
+  }
+
   useEffect(() => {
     if (!user) return
     // Set default user_id when user loads
     setForm(f => ({ ...f, user_id: f.user_id || user.id }))
     // Fetch all profiles for the "For" selector
     supabase.from('profiles').select('*').order('display_name').then(({ data }) => {
-      if (data) setProfiles(data)
+      if (data) {
+        setProfiles(data)
+        // If current user is a spouse, default reservation to primary member
+        const currentProfile = data.find(p => p.id === user.id)
+        if (currentProfile && SPOUSE_TO_PRIMARY[currentProfile.display_name]) {
+          const primary = data.find(p => p.display_name === SPOUSE_TO_PRIMARY[currentProfile.display_name])
+          if (primary) setForm(f => ({ ...f, user_id: primary.id }))
+        }
+      }
     })
   }, [user])
 

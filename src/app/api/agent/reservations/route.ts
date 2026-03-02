@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { verifyAgentAuth, unauthorizedResponse } from '@/lib/agent-auth'
 import { supabaseAdmin } from '@/lib/supabase-admin'
-import { findProfileByName } from '@/lib/profile-lookup'
+import { findProfileByName, getPrimaryMemberName } from '@/lib/profile-lookup'
 
 export async function GET(request: NextRequest) {
   if (!verifyAgentAuth(request)) return unauthorizedResponse()
@@ -44,7 +44,10 @@ export async function POST(request: NextRequest) {
     return NextResponse.json({ error: 'name, start_date, and end_date are required' }, { status: 400 })
   }
 
-  const { profile, error: lookupError } = await findProfileByName(name)
+  // Map spouse to primary member for reservations
+  const resolvedName = getPrimaryMemberName(name) || name
+  
+  const { profile, error: lookupError } = await findProfileByName(resolvedName)
   if (!profile) return NextResponse.json({ error: lookupError }, { status: 400 })
 
   const { data, error } = await supabaseAdmin
