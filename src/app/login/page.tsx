@@ -1,7 +1,6 @@
 'use client'
 
 import { useState } from 'react'
-import { supabase } from '@/lib/supabase'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
@@ -14,19 +13,26 @@ export default function LoginPage() {
 
   async function sendMagicLink() {
     setLoading(true)
-    const { error } = await supabase.auth.signInWithOtp({
-      email,
-      options: {
-        emailRedirectTo: `${window.location.origin}/auth/callback`,
-      },
-    })
-    setLoading(false)
-    if (error) {
-      toast.error(error.message)
-    } else {
-      setSent(true)
-      toast.success('Magic link sent! Check your email.')
+    try {
+      const res = await fetch('/api/auth/login', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          email,
+          redirectTo: `${window.location.origin}/auth/callback`,
+        }),
+      })
+      const data = await res.json()
+      if (!res.ok) {
+        toast.error(data.error || 'Failed to send magic link')
+      } else {
+        setSent(true)
+        toast.success('Magic link sent! Check your email.')
+      }
+    } catch {
+      toast.error('Something went wrong. Try again.')
     }
+    setLoading(false)
   }
 
   return (
