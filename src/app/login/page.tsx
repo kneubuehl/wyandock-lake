@@ -1,15 +1,32 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect, Suspense } from 'react'
+import { useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Input } from '@/components/ui/input'
 import { toast } from 'sonner'
 import Image from 'next/image'
 
 export default function LoginPage() {
+  return (
+    <Suspense>
+      <LoginContent />
+    </Suspense>
+  )
+}
+
+function LoginContent() {
   const [email, setEmail] = useState('')
   const [sent, setSent] = useState(false)
   const [loading, setLoading] = useState(false)
+  const searchParams = useSearchParams()
+
+  useEffect(() => {
+    const error = searchParams.get('error')
+    if (error) {
+      toast.error(error)
+    }
+  }, [searchParams])
 
   async function sendMagicLink() {
     setLoading(true)
@@ -92,6 +109,9 @@ export default function LoginPage() {
                 </p>
                 <p className="text-xs text-muted-foreground mt-2">
                   Click the link in your email to sign in.
+                </p>
+                <p className="text-xs text-muted-foreground mt-2 italic">
+                  Tip: If the link doesn&apos;t work, try long-pressing it and choosing &quot;Open in Safari&quot; or &quot;Open in Chrome&quot;
                 </p>
               </div>
               <Button

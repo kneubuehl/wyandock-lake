@@ -25,7 +25,7 @@ export async function GET(request: Request) {
               cookieStore.set(name, value, options)
             )
           } catch {
-            // The `setAll` method is called from a Server Component
+            // Server component limitation
           }
         },
       },
@@ -38,6 +38,8 @@ export async function GET(request: Request) {
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`)
     }
+    console.error('Auth callback code exchange error:', error.message)
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`)
   }
 
   // Handle token hash flow (magic link / OTP)
@@ -46,8 +48,10 @@ export async function GET(request: Request) {
     if (!error) {
       return NextResponse.redirect(`${origin}${next}`)
     }
+    console.error('Auth callback OTP verify error:', error.message)
+    return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent(error.message)}`)
   }
 
-  // Something went wrong — redirect to login with error
-  return NextResponse.redirect(`${origin}/login?error=auth_failed`)
+  // No code or token_hash — show helpful message
+  return NextResponse.redirect(`${origin}/login?error=${encodeURIComponent('Invalid or expired link. Please request a new one.')}`)
 }
