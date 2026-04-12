@@ -19,6 +19,7 @@ import {
   format, startOfMonth, endOfMonth, eachDayOfInterval, startOfWeek, endOfWeek,
   isSameMonth, isSameDay, isToday, addMonths, subMonths, isWithinInterval, parseISO, addDays
 } from 'date-fns'
+import { parseLocalDate } from '@/lib/utils'
 import { ChevronLeft, ChevronRight, Plus } from 'lucide-react'
 import { toast } from 'sonner'
 
@@ -126,7 +127,7 @@ export default function CalendarPage() {
 
   function getReservationsForDay(day: Date) {
     return reservations.filter(r =>
-      isWithinInterval(day, { start: parseISO(r.start_date), end: parseISO(r.end_date) })
+      isWithinInterval(day, { start: parseLocalDate(r.start_date), end: parseLocalDate(r.end_date) })
     )
   }
 
@@ -270,7 +271,7 @@ export default function CalendarPage() {
                     <div>
                       <p className="text-sm font-medium">{(r as any).profiles?.display_name || 'Guest'}</p>
                       <p className="text-xs text-muted-foreground">
-                        {format(parseISO(r.start_date), 'MMM d')} – {format(parseISO(r.end_date), 'MMM d')}
+                        {format(parseLocalDate(r.start_date), 'MMM d')} – {format(parseLocalDate(r.end_date), 'MMM d')}
                         {r.notes && ` • ${r.notes}`}
                       </p>
                     </div>

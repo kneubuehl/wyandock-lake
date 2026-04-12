@@ -11,6 +11,7 @@ import { supabase } from '@/lib/supabase'
 // import { getParentForDate } from '@/lib/schedule'
 import { HandoffNote, MaintenanceTask } from '@/lib/types'
 import { format, addDays, isPast, isToday, isFuture } from 'date-fns'
+import { parseLocalDate } from '@/lib/utils'
 import Link from 'next/link'
 import {
   CalendarDays, ClipboardList, Wrench, BookOpen,
@@ -133,8 +134,8 @@ export default function HomePage() {
               <div className="space-y-2">
                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Upcoming</p>
                 {upcomingReservations.map(r => {
-                  const start = new Date(r.start_date)
-                  const end = new Date(r.end_date)
+                  const start = parseLocalDate(r.start_date)
+                  const end = parseLocalDate(r.end_date)
                   const isNow = !isFuture(start) && !isPast(end)
                   return (
                     <div key={r.id} className={`flex items-center gap-3 p-2.5 rounded-lg ${isNow ? 'bg-blue-50 border border-blue-100' : 'bg-muted/40'}`}>
@@ -157,7 +158,7 @@ export default function HomePage() {
             {/* Last visitor */}
             {lastVisitor && (
               <div className="text-xs text-muted-foreground border-t pt-3">
-                Last visit: <span className="font-medium text-foreground">{lastVisitor.name}</span> — left {format(new Date(lastVisitor.end_date), 'MMM d')}
+                Last visit: <span className="font-medium text-foreground">{lastVisitor.name}</span> — left {format(parseLocalDate(lastVisitor.end_date), 'MMM d')}
               </div>
             )}
 
