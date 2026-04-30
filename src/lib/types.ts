@@ -1,4 +1,4 @@
-export type UserRole = 'admin' | 'member'
+export type UserRole = 'admin' | 'member' | 'caretaker'
 export type ParentName = 'cheryl' | 'stephen_sr'
 export type TaskStatus = 'pending' | 'completed' | 'overdue'
 export type Recurrence = 'one-time' | 'monthly' | 'quarterly' | 'annual' | 'custom'
