@@ -2,63 +2,95 @@ import { NextRequest, NextResponse } from 'next/server'
 import { verifyAgentAuth, unauthorizedResponse } from '@/lib/agent-auth'
 import { supabaseAdmin } from '@/lib/supabase-admin'
 
+function serialize(p: {
+  id: string
+  title: string
+  content: string
+  category: string
+  created_at: string
+  updated_at: string
+  profiles?: { display_name: string } | null
+}) {
+  return {
+    id: p.id,
+    title: p.title,
+    content: p.content,
+    category: p.category,
+    created_by: p.profiles?.display_name,
+    created_at: p.created_at,
+    updated_at: p.updated_at,
+  }
+}
+
 export async function GET(request: NextRequest) {
   if (!verifyAgentAuth(request)) return unauthorizedResponse()
 
-  const { data, error } = await supabaseAdmin
-    .from('security_codes')
-    .select('id, label, code, notes, updated_at')
-    .order('label')
+  const category = request.nextUrl.searchParams.get('category')
+  const q = request.nextUrl.searchParams.get('q')
 
+  let query = supabaseAdmin
+    .from('procedures')
+    .select('*, profiles:created_by(display_name)')
+    .order('category')
+    .order('title')
+
+  if (category) query = query.eq('category', category)
+  if (q) query = query.or(`title.ilike.%${q}%,content.ilike.%${q}%`)
+
+  const { data, error } = await query
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ codes: data })
+  return NextResponse.json({ procedures: data.map(serialize) })
 }
 
 export async function POST(request: NextRequest) {
   if (!verifyAgentAuth(request)) return unauthorizedResponse()
 
   const body = await request.json()
-  const { label, code, notes } = body
+  const { title, content, category } = body
 
-  if (!label || !code) {
-    return NextResponse.json({ error: 'label and code are required' }, { status: 400 })
+  if (!title) {
+    return NextResponse.json({ error: 'title is required' }, { status: 400 })
   }
 
   const { data, error } = await supabaseAdmin
-    .from('security_codes')
-    .insert({ label, code, notes: notes || null })
-    .select('id, label, code, notes, updated_at')
+    .from('procedures')
+    .insert({
+      title,
+      content: content || '',
+      category: category || 'General',
+    })
+    .select('*, profiles:created_by(display_name)')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ code: data })
+  return NextResponse.json({ procedure: serialize(data) })
 }
 
 export async function PATCH(request: NextRequest) {
   if (!verifyAgentAuth(request)) return unauthorizedResponse()
 
   const body = await request.json()
-  const { id, label, code, notes } = body
+  const { id, title, content, category } = body
 
   if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
 
   const updates: Record<string, unknown> = { updated_at: new Date().toISOString() }
-  if (label !== undefined) updates.label = label
-  if (code !== undefined) updates.code = code
-  if (notes !== undefined) updates.notes = notes
+  if (title !== undefined) updates.title = title
+  if (content !== undefined) updates.content = content
+  if (category !== undefined) updates.category = category
 
   const { data, error } = await supabaseAdmin
-    .from('security_codes')
+    .from('procedures')
     .update(updates)
     .eq('id', id)
-    .select('id, label, code, notes, updated_at')
+    .select('*, profiles:created_by(display_name)')
     .single()
 
   if (error) return NextResponse.json({ error: error.message }, { status: 500 })
 
-  return NextResponse.json({ code: data })
+  return NextResponse.json({ procedure: serialize(data) })
 }
 
 export async function DELETE(request: NextRequest) {
@@ -70,7 +102,7 @@ export async function DELETE(request: NextRequest) {
   if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
 
   const { error } = await supabaseAdmin
-    .from('security_codes')
+    .from('procedures')
     .delete()
     .eq('id', id)
 

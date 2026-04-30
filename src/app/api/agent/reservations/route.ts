@@ -70,6 +70,46 @@ export async function POST(request: NextRequest) {
   })
 }
 
+export async function PATCH(request: NextRequest) {
+  if (!verifyAgentAuth(request)) return unauthorizedResponse()
+
+  const body = await request.json()
+  const { id, name, start_date, end_date, notes } = body
+
+  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+
+  const updates: Record<string, unknown> = {}
+  if (start_date !== undefined) updates.start_date = start_date
+  if (end_date !== undefined) updates.end_date = end_date
+  if (notes !== undefined) updates.notes = notes
+  if (name !== undefined) {
+    const resolvedName = getPrimaryMemberName(name) || name
+    const { profile, error: lookupError } = await findProfileByName(resolvedName)
+    if (!profile) return NextResponse.json({ error: lookupError }, { status: 400 })
+    updates.user_id = profile.id
+  }
+
+  const { data, error } = await supabaseAdmin
+    .from('reservations')
+    .update(updates)
+    .eq('id', id)
+    .select('*, profiles:user_id(display_name)')
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({
+    reservation: {
+      id: data.id,
+      start_date: data.start_date,
+      end_date: data.end_date,
+      notes: data.notes,
+      name: data.profiles?.display_name,
+      created_at: data.created_at,
+    }
+  })
+}
+
 export async function DELETE(request: NextRequest) {
   if (!verifyAgentAuth(request)) return unauthorizedResponse()
 

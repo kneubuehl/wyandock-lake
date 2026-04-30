@@ -71,3 +71,55 @@ export async function POST(request: NextRequest) {
     }
   })
 }
+
+export async function PATCH(request: NextRequest) {
+  if (!verifyAgentAuth(request)) return unauthorizedResponse()
+
+  const body = await request.json()
+  const { id, content, status } = body
+
+  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+
+  const updates: Record<string, unknown> = {}
+  if (content !== undefined) updates.content = content
+  if (status !== undefined) updates.status = status
+
+  const { data, error } = await supabaseAdmin
+    .from('handoff_notes')
+    .update(updates)
+    .eq('id', id)
+    .select('*, profiles:author_id(display_name)')
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({
+    note: {
+      id: data.id,
+      content: data.content,
+      author: data.profiles?.display_name,
+      status: data.status,
+      resolution_note: data.resolution_note,
+      resolved_at: data.resolved_at,
+      created_at: data.created_at,
+    }
+  })
+}
+
+export async function DELETE(request: NextRequest) {
+  if (!verifyAgentAuth(request)) return unauthorizedResponse()
+
+  const body = await request.json()
+  const { id } = body
+
+  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+
+  const { error } = await supabaseAdmin
+    .from('handoff_notes')
+    .delete()
+    .eq('id', id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ success: true })
+}

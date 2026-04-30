@@ -71,3 +71,55 @@ export async function POST(request: NextRequest) {
     }
   })
 }
+
+export async function PATCH(request: NextRequest) {
+  if (!verifyAgentAuth(request)) return unauthorizedResponse()
+
+  const body = await request.json()
+  const { id, title, description, status } = body
+
+  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+
+  const updates: Record<string, unknown> = {}
+  if (title !== undefined) updates.title = title
+  if (description !== undefined) updates.description = description
+  if (status !== undefined) updates.status = status
+
+  const { data, error } = await supabaseAdmin
+    .from('wish_list')
+    .update(updates)
+    .eq('id', id)
+    .select('*, profiles:author_id(display_name)')
+    .single()
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({
+    item: {
+      id: data.id,
+      title: data.title,
+      description: data.description,
+      author: data.profiles?.display_name,
+      status: data.status,
+      created_at: data.created_at,
+    }
+  })
+}
+
+export async function DELETE(request: NextRequest) {
+  if (!verifyAgentAuth(request)) return unauthorizedResponse()
+
+  const body = await request.json()
+  const { id } = body
+
+  if (!id) return NextResponse.json({ error: 'id is required' }, { status: 400 })
+
+  const { error } = await supabaseAdmin
+    .from('wish_list')
+    .delete()
+    .eq('id', id)
+
+  if (error) return NextResponse.json({ error: error.message }, { status: 500 })
+
+  return NextResponse.json({ success: true })
+}
