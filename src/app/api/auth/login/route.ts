@@ -28,6 +28,19 @@ export async function POST(request: NextRequest) {
     )
   }
 
+  // Ensure the user exists in Supabase Auth before sending OTP.
+  // If signups are disabled in the dashboard, signInWithOtp silently
+  // won't email users that don't have an auth account yet.
+  // Try to create — if they already exist, Supabase returns an error we can ignore.
+  const { error: createError } = await supabaseAdmin.auth.admin.createUser({
+    email: normalizedEmail,
+    email_confirm: true, // mark email confirmed so OTP works immediately
+  })
+  if (createError && !createError.message.toLowerCase().includes('already been registered')) {
+    console.error('Failed to pre-create user:', createError.message)
+    return NextResponse.json({ error: 'Unable to set up account. Contact Steve E.' }, { status: 500 })
+  }
+
   const { error } = await supabaseAdmin.auth.signInWithOtp({
     email: normalizedEmail,
     options: {
