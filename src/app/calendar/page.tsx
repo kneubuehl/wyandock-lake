@@ -126,8 +126,10 @@ export default function CalendarPage() {
   const days = eachDayOfInterval({ start: calStart, end: calEnd })
 
   function getReservationsForDay(day: Date) {
+    // Normalize to noon so the comparison matches parseLocalDate (also noon)
+    const noon = new Date(day.getFullYear(), day.getMonth(), day.getDate(), 12, 0, 0)
     return reservations.filter(r =>
-      isWithinInterval(day, { start: parseLocalDate(r.start_date), end: parseLocalDate(r.end_date) })
+      isWithinInterval(noon, { start: parseLocalDate(r.start_date), end: parseLocalDate(r.end_date) })
     )
   }
 
